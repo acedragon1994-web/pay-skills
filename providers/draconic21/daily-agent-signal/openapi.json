@@ -1,0 +1,611 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "draconic21 Daily Agent Signal (Signal-only)",
+    "version": "0.21.0",
+    "description": "Only the Daily Agent Signal family: free preview (GET /signal headlines + SKU prices, GET /signal/feed.json), free verify (GET /health signal.sha256, GET /v1/signal_latest/example), free track record (/signal/scorecard.json), then paid POST/GET /v1/signal_latest ($0.03), /v1/signal_delta ($0.05), /v1/signal_history ($0.10) and the other dated-archive routes. Unpaid calls return HTTP 402 (x402, USDC on Base). Full catalog with supporting tools: https://draconic21-x402-api.onrender.com/openapi.json.",
+    "x-brand": "draconic21",
+    "x-go-to-product": "Daily Agent Signal",
+    "x-origin": "https://draconic21-x402-api.onrender.com",
+    "x-archive-day-count": 20,
+    "x-archive-note": "20 stored dates from 2026-09-19 through 2026-10-17. Intraday revisions do not add archive days.",
+    "x-flagship-order": [
+      "/v1/signal_latest",
+      "/v1/signal_history",
+      "/v1/signal_delta"
+    ],
+    "x-track-record": {
+      "url": "https://draconic21-x402-api.onrender.com/signal/scorecard.json",
+      "price_usdc": 0,
+      "summary": "60 dated calls tracked: 37 confirmed, 5 partial, 18 falsified (our own misses included), 0 open; 4 published corrections of our own figures",
+      "counts": {
+        "tracked": 60,
+        "resolved": 60,
+        "confirmed": 37,
+        "partial": 5,
+        "falsified": 18,
+        "open": 0,
+        "corrections": 4
+      },
+      "note": "Dated Signal predictions scored against later sha256-addressed revisions; misses stay listed as falsified. Scores catalog/registration behavior and public sampler-wallet USDC transfer timing; never our seller revenue."
+    },
+    "x-free-preview": {
+      "signal_page": "https://draconic21-x402-api.onrender.com/signal",
+      "headlines_feed": "https://draconic21-x402-api.onrender.com/signal/feed.json",
+      "headlines_atom": "https://draconic21-x402-api.onrender.com/signal/feed.xml"
+    },
+    "x-guidance": "Start with the free verify: GET /health (signal.date, signal.sha256), then GET /v1/signal_latest/example and require its date/sha256 to match before paying. Buy POST /v1/signal_latest ($0.03 USDC on Base, body {} or { expect_sha256 } copied from /health so a revision that changed since you checked returns 409 unpaid) for today's curated Daily Agent Signal on the x402 agent-payment economy. Add POST /v1/signal_delta ($0.05) for what changed vs a prior day and POST /v1/signal_history ($0.10) for the dated archive. Free calibration: GET /signal/scorecard.json lists our dated calls scored confirmed/partial/falsified/open plus corrections of our own figures. Unpaid calls return HTTP 402 with an x402 challenge; pay with any x402 v2 client. Other routes are supporting tools; Signal is the flagship.",
+    "contact": {
+      "name": "draconic21 Daily Agent Signal",
+      "url": "https://draconic21-x402-api.onrender.com/agents.md"
+    },
+    "x-full-spec": "https://draconic21-x402-api.onrender.com/openapi.json"
+  },
+  "externalDocs": {
+    "description": "Daily Agent Signal: free dated headlines and every Signal SKU with its price (HTML, no wallet)",
+    "url": "https://draconic21-x402-api.onrender.com/signal"
+  },
+  "servers": [
+    {
+      "url": "https://draconic21-x402-api.onrender.com"
+    }
+  ],
+  "paths": {
+    "/v1/signal_latest/example": {
+      "get": {
+        "summary": "Fetch the shape, date and sha256 of today's Signal",
+        "description": "Free. Require role=go_to_today and top-level date/sha256 equal to GET /health signal.date/signal.sha256 before paying $0.03 for POST /v1/signal_latest.",
+        "responses": {
+          "200": {
+            "description": "Example shape with live date/sha256"
+          }
+        },
+        "security": []
+      }
+    },
+    "/signal/scorecard.json": {
+      "get": {
+        "summary": "Fetch the scorecard of dated Signal calls, misses included",
+        "description": "Free. Each entry quotes a claim or falsifier published before the outcome and cites the content-addressed revision (date, generated_at, sha256) that made it and the later one that tested it. Our own misses stay listed as falsified. Scores catalog/registration behavior and the timing of public sampler wallets' outbound Base USDC transfers (third-party payments, not verified demand); never our seller revenue.",
+        "responses": {
+          "200": {
+            "description": "Scorecard entries + summary counts computed at serve time"
+          },
+          "503": {
+            "description": "Scorecard unavailable (no fabricated card)"
+          }
+        },
+        "security": []
+      }
+    },
+    "/v1/signal_latest": {
+      "post": {
+        "summary": "Fetch today's Daily Agent Signal brief (paid, $0.03)",
+        "description": "Requires x402 payment of $0.03 USDC on base. Today's stored Daily Agent Signal edition: ranked signals with judgment, buyer_value, curator_edge, vs_prior, action_hint and sources. Empty body {}. Free first: /signal headlines, /health date/sha256, /signal/scorecard.json (misses included). Coverage varies by edition; sampled transfers are not verified buyer revenue.",
+        "x-x402": {
+          "price": "$0.03",
+          "network": "eip155:8453",
+          "payToConfigured": true
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expect_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "Optional. Lowercase hex sha256 of the brief you verified at free GET /health signal.sha256. If the live revision differs you get 409 with the current date/sha256 and no payment is taken."
+                  }
+                },
+                "additionalProperties": true
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured result"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "402": {
+            "description": "Payment Required (x402 challenge)"
+          },
+          "409": {
+            "description": "expect_sha256 no longer matches the live revision; current date/sha256 returned, payment not processed"
+          }
+        },
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.03"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        }
+      },
+      "get": {
+        "summary": "Fetch today's Daily Agent Signal brief via paid GET ($0.03)",
+        "description": "The same Daily Agent Signal as POST /v1/signal_latest. Requires x402 payment; no request body. Optional expect_sha256 (from free GET /health signal.sha256) makes verify-then-pay atomic: a changed revision returns 409 before payment.",
+        "parameters": [
+          {
+            "name": "expect_sha256",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "description": "Optional. Lowercase hex sha256 of the brief you verified at free GET /health signal.sha256. If the live revision differs you get 409 with the current date/sha256 and no payment is taken."
+            }
+          }
+        ],
+        "x-x402": {
+          "price": "$0.03",
+          "network": "eip155:8453",
+          "payToConfigured": true
+        },
+        "responses": {
+          "200": {
+            "description": "Structured dated Signal"
+          },
+          "400": {
+            "description": "Malformed expect_sha256; payment not processed"
+          },
+          "402": {
+            "description": "Payment Required (x402 challenge)"
+          },
+          "409": {
+            "description": "expect_sha256 no longer matches the live revision; current date/sha256 returned, payment not processed"
+          },
+          "503": {
+            "description": "Signal unavailable"
+          }
+        },
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.03"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        }
+      }
+    },
+    "/v1/signal_history": {
+      "post": {
+        "summary": "Fetch archived Daily Agent Signal editions for recent days",
+        "description": "Requires x402 payment of $0.10 USDC on base. x402 market history: the last N stored Daily Agent Signal editions in one call (body: { days: 1..30 }), from a dated, content-addressed archive; past editions cannot be backfilled by a newcomer. Free first: /signal, /health (date, sha256, archive depth), /signal/scorecard.json (misses included). Sampled transfers are not verified buyer revenue.",
+        "x-x402": {
+          "price": "$0.10",
+          "network": "eip155:8453",
+          "payToConfigured": true
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Number of recent archive days to return."
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "days": 7
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured result"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "402": {
+            "description": "Payment Required (x402 challenge)"
+          }
+        },
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.10"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        }
+      }
+    },
+    "/v1/signal_delta": {
+      "post": {
+        "summary": "Fetch what changed in the Signal since a given date",
+        "description": "Requires x402 payment of $0.05 USDC on base. Complete new/changed/removed signals vs the latest stored day on/before since_date. Includes rank, judgment, evidence, and sources. Invalid dates return 400; absent baselines 422; invalid archives 503, all before payment. Check GET /v1/signal_delta/availability first.",
+        "x-x402": {
+          "price": "$0.05",
+          "network": "eip155:8453",
+          "payToConfigured": true
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "since_date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "YYYY-MM-DD; return changes since this edition date."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "since_date"
+                ]
+              },
+              "example": {
+                "since_date": "2026-10-14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured result"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "402": {
+            "description": "Payment Required (x402 challenge)"
+          },
+          "422": {
+            "description": "No archived baseline on or before since_date; payment not processed"
+          },
+          "503": {
+            "description": "Archive unavailable or invalid; payment not processed"
+          }
+        },
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.05"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        }
+      }
+    },
+    "/v1/signal_delta/availability": {
+      "get": {
+        "summary": "Check delta availability and archive dates for a since_date",
+        "parameters": [
+          {
+            "name": "since_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-10-14"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Baseline/current dates and whether a newer archive day exists"
+          },
+          "400": {
+            "description": "Invalid date"
+          },
+          "422": {
+            "description": "No baseline available"
+          },
+          "503": {
+            "description": "Invalid or unavailable archive"
+          }
+        },
+        "security": []
+      }
+    },
+    "/v1/signal_continuity": {
+      "post": {
+        "summary": "Fetch Signal continuity across recent archive days",
+        "description": "Requires x402 payment of $0.07 USDC on base. x402 trend map for agent commerce: cross-day continuity of Signal ids across stored editions (body: { days: 1..90 }). Labels stable/rising/new/fading (rising = recurring onto the tip, not a rank gain; see rank_delta). Not a brief dump; use signal_history for full editions. Free first: /signal, /health, /signal/scorecard.json (misses included).",
+        "x-x402": {
+          "price": "$0.07",
+          "network": "eip155:8453",
+          "payToConfigured": true
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Number of recent archive days to compound."
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "days": 7
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured result"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "402": {
+            "description": "Payment Required (x402 challenge)"
+          }
+        },
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.07"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        }
+      }
+    },
+    "/v1/signal_day": {
+      "post": {
+        "summary": "Fetch one archived Daily Agent Signal edition by date",
+        "description": "Requires x402 payment of $0.04 USDC on base. Point-in-time buy of ONE stored Daily Agent Signal edition (body: { date: YYYY-MM-DD }, required) for backtests or audits; the content hash lets you check you got the exact published bytes. Invalid dates return 400 and unstored dates 404, both before payment. Cheaper than full history. Free first: /signal, /health, /signal/scorecard.json.",
+        "x-x402": {
+          "price": "$0.04",
+          "network": "eip155:8453",
+          "payToConfigured": true
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "YYYY-MM-DD archive edition date."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "date"
+                ]
+              },
+              "example": {
+                "date": "2026-09-20"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured result"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "402": {
+            "description": "Payment Required (x402 challenge)"
+          }
+        },
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.04"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        }
+      }
+    },
+    "/v1/archive_tip_day": {
+      "post": {
+        "summary": "Fetch one archived Signal day bundled with a tip",
+        "description": "Requires x402 payment of $0.01 USDC on base. $0.01 entry: one stored Daily Agent Signal day plus a tip receipt (brand, date, content hash; no payTo) (body: { date: YYYY-MM-DD }). Cheapest way to try the archive; the main product is signal_latest at $0.03. Free first: /signal, /health, /signal/scorecard.json.",
+        "x-x402": {
+          "price": "$0.01",
+          "network": "eip155:8453",
+          "payToConfigured": true
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "YYYY-MM-DD archive edition date to unlock."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "date"
+                ]
+              },
+              "example": {
+                "date": "2026-09-20"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured result"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "402": {
+            "description": "Payment Required (x402 challenge)"
+          }
+        },
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.01"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        }
+      }
+    },
+    "/v1/signal_topic_trace": {
+      "post": {
+        "summary": "Trace one Signal topic or signal id across editions",
+        "description": "Requires x402 payment of $0.06 USDC on base. One Daily Agent Signal thread traced across stored editions: dates it appeared, headline, judgment, rank and vs_prior per day. Body { id } (recommended; any Signal id) or { topic } (topic tags only cover the 2026-09-19..09-25 editions); optional days 1..90. A bad body is a free 400 and an unmatched id a free 404 with sample ids, never a 402. Free first: /signal, /health, /signal/scorecard.json.",
+        "x-x402": {
+          "price": "$0.06",
+          "network": "eip155:8453",
+          "payToConfigured": true
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "topic": {
+                    "type": "string",
+                    "description": "Topic tag to trace, e.g. x402."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "Signal id to trace."
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "id": "sampler-0xc9c7-four-hour-review-20261017"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Structured result"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "402": {
+            "description": "Payment Required (x402 challenge)"
+          }
+        },
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.06"
+          },
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ]
+        }
+      }
+    },
+    "/agents.md": {
+      "get": {
+        "summary": "Fetch the buyer guide in markdown with absolute URLs",
+        "responses": {
+          "200": {
+            "description": "text/markdown"
+          }
+        },
+        "security": []
+      }
+    },
+    "/.well-known/x402.json": {
+      "get": {
+        "summary": "List x402 well-known services for this origin",
+        "responses": {
+          "200": {
+            "description": "x402 discovery document"
+          }
+        },
+        "security": []
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Check liveness and today's Signal sha256 and date",
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bundleToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "Value 'Bearer <token>': prepaid bundle token from POST /v1/bundle/<product> (x402-paid). Used only by /v1/bundle/redeem/* routes."
+      }
+    }
+  }
+}
